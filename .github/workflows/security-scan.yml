@@ -78,10 +78,21 @@ jobs:
           cache: 'maven'
       
       - name: Run OWASP Dependency Check
+        env:
+          NVD_API_KEY: ${{ secrets.NVD_API_KEY }}
         run: |
-          mvn org.owasp:dependency-check-maven:check \
-            -DfailBuildOnCVSS=7 \
-            -DsuppressionFiles=./dependency-check-suppressions.xml
+          if [ -n "$NVD_API_KEY" ]; then
+            echo "Using NVD API Key for faster updates"
+            mvn org.owasp:dependency-check-maven:check \
+              -DfailBuildOnCVSS=7 \
+              -DnvdApiKey=$NVD_API_KEY \
+              -DsuppressionFiles=./dependency-check-suppressions.xml
+          else
+            echo "Warning: No NVD API Key found. This will be slow. Add NVD_API_KEY to GitHub Secrets."
+            mvn org.owasp:dependency-check-maven:check \
+              -DfailBuildOnCVSS=7 \
+              -DsuppressionFiles=./dependency-check-suppressions.xml
+          fi
         continue-on-error: true
       
       - name: Upload OWASP Dependency Check results
