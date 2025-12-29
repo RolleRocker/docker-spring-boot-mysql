@@ -10,10 +10,18 @@ on:
     - cron: '0 9 * * 1'
   workflow_dispatch:
 
+permissions:
+  contents: read
+  security-events: write
+  actions: read
+
 jobs:
   docker-security-scan:
     name: Docker Image Security Scan
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
     
     steps:
       - name: Checkout code
@@ -26,7 +34,7 @@ jobs:
         run: docker build -t messages-app:latest .
       
       - name: Run Trivy vulnerability scanner on application
-        uses: aquasecurity/trivy-action@master
+        uses: aquasecurity/trivy-action@master4
         with:
           image-ref: 'messages-app:latest'
           format: 'sarif'
