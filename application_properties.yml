@@ -1,0 +1,28 @@
+spring:
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:mysql://localhost:3306/messages_db?createDatabaseIfNotExist=true}
+    username: ${SPRING_DATASOURCE_USERNAME:app_user}
+    password: ${SPRING_DATASOURCE_PASSWORD:app_password}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  
+  jpa:
+    hibernate:
+      ddl-auto: ${SPRING_JPA_HIBERNATE_DDL_AUTO:update}
+    show-sql: ${SPRING_JPA_SHOW_SQL:true}
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQL8Dialect
+        format_sql: true
+
+server:
+  port: 8080
+
+# Actuator configuration
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: always

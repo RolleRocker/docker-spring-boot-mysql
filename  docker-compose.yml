@@ -1,0 +1,51 @@
+version: '3.8'
+
+services:
+  # MySQL Database
+  mysql:
+    image: mysql:8.0.40
+    container_name: messages-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./initial_setup.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      timeout: 10s
+      retries: 10
+      interval: 10s
+
+  # Java Application
+  app:
+    build: .
+    container_name: messages-app
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL}
+      SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME}
+      SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD}
+      SPRING_JPA_HIBERNATE_DDL_AUTO: ${SPRING_JPA_HIBERNATE_DDL_AUTO}
+      SPRING_JPA_SHOW_SQL: ${SPRING_JPA_SHOW_SQL}
+      SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT: org.hibernate.dialect.MySQL8Dialect
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - app-network
+    restart: unless-stopped
+
+volumes:
+  mysql_data:
+
+networks:
+  app-network:
+    driver: bridge
