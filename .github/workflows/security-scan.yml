@@ -34,7 +34,7 @@ jobs:
         run: docker build -t messages-app:latest .
       
       - name: Run Trivy vulnerability scanner on application
-        uses: aquasecurity/trivy-action@master4
+        uses: aquasecurity/trivy-action@0.30.0
         with:
           image-ref: 'messages-app:latest'
           format: 'sarif'
@@ -42,21 +42,21 @@ jobs:
           severity: 'CRITICAL,HIGH'
       
       - name: Upload Trivy results to GitHub Security
-        uses: github/codeql-action/upload-sarif@v3
+        uses: github/codeql-action/upload-sarif@v4
         if: always()
         with:
           sarif_file: 'trivy-results-app.sarif'
           category: 'docker-app-image'
       
       - name: Scan MySQL image
-        uses: aquasecurity/trivy-action@master
+        uses: aquasecurity/trivy-action@0.30.0
         with:
           image-ref: 'mysql:8.0.40'
           format: 'table'
           severity: 'CRITICAL,HIGH'
       
       - name: Scan Temurin JRE image
-        uses: aquasecurity/trivy-action@master
+        uses: aquasecurity/trivy-action@0.30.0
         with:
           image-ref: 'eclipse-temurin:21.0.5_11-jre-alpine'
           format: 'table'
