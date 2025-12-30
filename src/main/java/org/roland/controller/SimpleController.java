@@ -1,16 +1,24 @@
 package org.roland.controller;
 
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicLong;
+
+import org.roland.dto.CounterResponse;
+import org.roland.dto.HelloResponse;
+import org.roland.dto.InfoResponse;
+import org.roland.dto.MessageRequest;
+import org.roland.dto.MessageResponse;
 import org.roland.model.Message;
 import org.roland.model.MessageRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
-import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.atomic.AtomicLong;
+import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/api")
@@ -18,45 +26,50 @@ import java.util.concurrent.atomic.AtomicLong;
 public class SimpleController {
 
     private final AtomicLong counter = new AtomicLong();
+    private final MessageRepository messageRepository;
 
-    @Autowired
-    private MessageRepository messageRepository;
+    public SimpleController(MessageRepository messageRepository) {
+        this.messageRepository = messageRepository;
+    }
 
     @GetMapping("/hello")
-    public ResponseEntity<Map<String, String>> hello() {
-        Map<String, String> response = new HashMap<>();
-        response.put("message", "Hello from Java Docker app!");
-        response.put("timestamp", LocalDateTime.now().toString());
-        return ResponseEntity.ok(response);
+    public ResponseEntity<HelloResponse> hello() {
+        return ResponseEntity.ok(
+            new HelloResponse("Hello from Java Docker app!", LocalDateTime.now().toString())
+        );
     }
 
     @GetMapping("/counter")
-    public ResponseEntity<Map<String, Long>> getCounter() {
-        Map<String, Long> response = new HashMap<>();
-        response.put("count", counter.incrementAndGet());
-        return ResponseEntity.ok(response);
+    public ResponseEntity<CounterResponse> getCounter() {
+        return ResponseEntity.ok(new CounterResponse(counter.incrementAndGet()));
     }
 
     @PostMapping("/messages")
-    public ResponseEntity<Message> addMessage(@RequestBody Message message) {
+    public ResponseEntity<MessageResponse> addMessage(@Valid @RequestBody MessageRequest request) {
+        Message message = new Message(request.content());
         message.setTimestamp(LocalDateTime.now());
         Message savedMessage = messageRepository.save(message);
-        return ResponseEntity.ok(savedMessage);
+        return ResponseEntity.ok(MessageResponse.fromEntity(savedMessage));
     }
 
     @GetMapping("/messages")
-    public ResponseEntity<List<Message>> getMessages() {
-        List<Message> messages = messageRepository.findAllByOrderByTimestampDesc();
+    public ResponseEntity<List<MessageResponse>> getMessages() {
+        List<MessageResponse> messages = messageRepository.findAllByOrderByTimestampDesc()
+            .stream()
+            .map(MessageResponse::fromEntity)
+            .toList();
         return ResponseEntity.ok(messages);
     }
 
     @GetMapping("/info")
-    public ResponseEntity<Map<String, Object>> getInfo() {
-        Map<String, Object> info = new HashMap<>();
-        info.put("app", "simple-java-docker");
-        info.put("version", "1.0.0");
-        info.put("timestamp", LocalDateTime.now().toString());
-        info.put("totalMessages", messageRepository.count());
-        return ResponseEntity.ok(info);
+    public ResponseEntity<InfoResponse> getInfo() {
+        return ResponseEntity.ok(
+            new InfoResponse(
+                "simple-java-docker",
+                "1.0.0",
+                LocalDateTime.now().toString(),
+                messageRepository.count()
+            )
+        );
     }
 }

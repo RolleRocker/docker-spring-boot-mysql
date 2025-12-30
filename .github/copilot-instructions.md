@@ -1,7 +1,11 @@
 # Copilot Instructions - Simple Java Docker Project
 
+## General Preferences
+- **Always use PowerShell** for terminal commands (not cmd) - better error handling, modern scripting, and native Windows integration
+- Use single-line git commit messages to avoid parsing issues
+
 ## Project Overview
-Spring Boot 3.4.5 REST API with MySQL persistence, designed as a Docker learning project. Uses multi-stage Dockerfile builds and Docker Compose orchestration.
+Spring Boot 3.4.13 REST API with MySQL persistence, designed as a Docker learning project. Uses multi-stage Dockerfile builds and Docker Compose orchestration.
 
 ## Architecture & Components
 

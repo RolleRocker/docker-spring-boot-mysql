@@ -60,16 +60,16 @@ class SimpleControllerIntegrationTest {
         }
     }
 
-
-
-    @Autowired
-    private MockMvc mockMvc;
-
-    @Autowired
-    private ObjectMapper objectMapper;
+    private final MockMvc mockMvc;
+    private final ObjectMapper objectMapper;
+    private final MessageRepository messageRepository;
 
     @Autowired
-    private MessageRepository messageRepository;
+    SimpleControllerIntegrationTest(MockMvc mockMvc, ObjectMapper objectMapper, MessageRepository messageRepository) {
+        this.mockMvc = mockMvc;
+        this.objectMapper = objectMapper;
+        this.messageRepository = messageRepository;
+    }
 
     @BeforeEach
     void setUp() {
