@@ -87,30 +87,42 @@ class SimpleControllerIntegrationTest {
 
     @Test
     void testCounterEndpoint() throws Exception {
-        // Första anropet
-        mockMvc.perform(get("/api/counter"))
+        // Get first counter value
+        int firstCount = Integer.parseInt(
+            mockMvc.perform(get("/api/counter"))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$.count", is(1)));
+                .andExpect(jsonPath("$.count", greaterThan(0)))
+                .andReturn().getResponse().getContentAsString()
+                .replaceAll(".*\"count\":(\\d+).*", "$1")
+        );
 
-        // Andra anropet
+        // Second call should increment
         mockMvc.perform(get("/api/counter"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.count", is(2)));
+                .andExpect(jsonPath("$.count", is(firstCount + 1)));
 
-        // Tredje anropet för att testa fortsatt räkning
+        // Third call should increment again
         mockMvc.perform(get("/api/counter"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.count", is(3)));
+                .andExpect(jsonPath("$.count", is(firstCount + 2)));
     }
 
     @Test
     void testCounterConcurrentRequests() throws Exception {
-        // Simulera flera samtidiga anrop
-        for (int i = 1; i <= 5; i++) {
+        // Get starting count
+        int startCount = Integer.parseInt(
+            mockMvc.perform(get("/api/counter"))
+                .andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString()
+                .replaceAll(".*\"count\":(\\d+).*", "$1")
+        );
+        
+        // Verify subsequent calls increment correctly
+        for (int i = 1; i <= 4; i++) {
             mockMvc.perform(get("/api/counter"))
                     .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.count", is(i)));
+                    .andExpect(jsonPath("$.count", is(startCount + i)));
         }
     }
 
@@ -122,10 +134,10 @@ class SimpleControllerIntegrationTest {
         when(messageRepository.save(any(Message.class))).thenReturn(message);
         when(messageRepository.findAllByOrderByTimestampDesc()).thenReturn(Arrays.asList(message));
 
-        // Testa att lägga till ett meddelande
+        // Testa att lägga till ett meddelande - send only content field
         mockMvc.perform(post("/api/messages")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(message)))
+                        .content("{\"content\":\"Test meddelande\"}"))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.content", is("Test meddelande")))
@@ -141,30 +153,21 @@ class SimpleControllerIntegrationTest {
 
     @Test
     void testAddMessageWithNullContent() throws Exception {
-        Message message = new Message();
-        message.setContent(null);
-        message.setTimestamp(LocalDateTime.now());
-
-        // This should actually fail due to @Column(nullable = false)
+        // This should fail due to @NotBlank validation
         mockMvc.perform(post("/api/messages")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(message)))
-                .andExpect(status().isBadRequest()); // Changed from isOk()
+                        .content("{\"content\":null}"))
+                .andExpect(status().isBadRequest());
     }
 
 
     @Test
     void testAddMessageWithEmptyContent() throws Exception {
-        Message message = new Message("");
-        message.setTimestamp(LocalDateTime.now());
-
-        when(messageRepository.save(any(Message.class))).thenReturn(message);
-
+        // Empty content should fail @NotBlank validation
         mockMvc.perform(post("/api/messages")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(message)))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.content", is("")));
+                        .content("{\"content\":\"\"}"))
+                .andExpect(status().isBadRequest());
     }
 
     @Test
@@ -177,7 +180,7 @@ class SimpleControllerIntegrationTest {
 
         mockMvc.perform(post("/api/messages")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(message)))
+                        .content("{\"content\":\"" + longContent + "\"}"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content", is(longContent)));
     }
@@ -192,7 +195,7 @@ class SimpleControllerIntegrationTest {
 
         mockMvc.perform(post("/api/messages")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(message)))
+                        .content(objectMapper.writeValueAsString(java.util.Map.of("content", specialContent))))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content", is(specialContent)));
     }
@@ -207,10 +210,8 @@ class SimpleControllerIntegrationTest {
 
     @Test
     void testAddMessageMissingContentType() throws Exception {
-        Message message = new Message("Test");
-
         mockMvc.perform(post("/api/messages")
-                        .content(objectMapper.writeValueAsString(message)))
+                        .content("{\"content\":\"Test\"}"))
                 .andExpect(status().isUnsupportedMediaType());
     }
 
@@ -318,7 +319,7 @@ class SimpleControllerIntegrationTest {
 
         mockMvc.perform(post("/api/messages")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(message)))
+                        .content("{\"content\":\"Workflow test\"}"))
                 .andExpect(status().isOk());
 
         // Steg 3: Verifiera att meddelandet finns
@@ -381,7 +382,7 @@ class SimpleControllerIntegrationTest {
 
         mockMvc.perform(post("/api/messages")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(new Message("Test"))))
+                        .content("{\"content\":\"Test\"}"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.timestamp", notNullValue()));
     }
@@ -430,7 +431,7 @@ class SimpleControllerIntegrationTest {
 
         mockMvc.perform(post("/api/messages")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(message)))
+                        .content(objectMapper.writeValueAsString(java.util.Map.of("content", unicodeContent))))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content", is(unicodeContent)));
     }
@@ -445,7 +446,7 @@ class SimpleControllerIntegrationTest {
 
         mockMvc.perform(post("/api/messages")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(message)))
+                        .content("{\"content\":\"" + largeContent + "\"}"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content", is(largeContent)));
     }
@@ -461,7 +462,7 @@ class SimpleControllerIntegrationTest {
 
         mockMvc.perform(post("/api/messages")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(message)))
+                        .content("{\"content\":\"" + exactLimit + "\"}"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content", is(exactLimit)));
     }
