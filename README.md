@@ -2,7 +2,7 @@
 
 [![Security Scan](https://github.com/RolleRocker/docker-spring-boot-mysql/actions/workflows/security-scan.yml/badge.svg)](https://github.com/RolleRocker/docker-spring-boot-mysql/actions/workflows/security-scan.yml)
 [![Java](https://img.shields.io/badge/Java-21-orange)](https://openjdk.org/)
-[![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.4.5-brightgreen)](https://spring.io/projects/spring-boot)
+[![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.4.13-brightgreen)](https://spring.io/projects/spring-boot)
 [![MySQL](https://img.shields.io/badge/MySQL-8.0.40-blue)](https://www.mysql.com/)
 [![Docker](https://img.shields.io/badge/Docker-Ready-2496ED)](https://www.docker.com/)
 
@@ -10,8 +10,8 @@ A production-ready Spring Boot REST API with MySQL persistence, designed as a co
 
 ## 🎯 Features
 
-- **Modern Stack**: Spring Boot 3.4.5 + Java 21 + MySQL 8.0.40
-- **RESTful API**: Full CRUD operations with message persistence
+- **Modern Stack**: Spring Boot 3.4.13 + Java 21 + MySQL 8.0.40
+- **RESTful API**: Full CRUD operations with message persistence using record-based DTOs
 - **Docker Optimized**: Multi-stage Dockerfile with dependency caching
 - **Security First**: OWASP dependency scanning, environment variables, automated CI/CD checks
 - **Production Ready**: Health checks, actuator endpoints, non-root containers
@@ -20,7 +20,7 @@ A production-ready Spring Boot REST API with MySQL persistence, designed as a co
 
 ## 🏗️ Architecture
 
-```
+```text
 ┌─────────────────┐
 │   REST Client   │
 └────────┬────────┘
@@ -40,10 +40,12 @@ A production-ready Spring Boot REST API with MySQL persistence, designed as a co
 
 ### Components
 
-**3-Layer Architecture:**
-- **Controllers** (`org.roland.controller`): REST endpoints under `/api` prefix
+**4-Layer Architecture:**
+
+- **Controllers** (`org.roland.controller`): REST endpoints under `/api` prefix using constructor injection
+- **DTOs** (`org.roland.dto`): Immutable record-based request/response objects with Bean Validation
 - **Models** (`org.roland.model`): JPA entities with Jakarta Persistence
-- **Repository**: Spring Data JPA with custom query methods
+- **Repository** (`org.roland.model`): Spring Data JPA with custom query methods (`findAllByOrderByTimestampDesc`)
 
 ## 📋 Prerequisites
 
@@ -97,16 +99,16 @@ docker-compose logs -f app
 
 ## 🔧 API Endpoints
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| `GET` | `/api/hello` | Hello world message with timestamp |
-| `GET` | `/api/counter` | Thread-safe atomic counter |
-| `GET` | `/api/messages` | Retrieve all messages (newest first) |
-| `POST` | `/api/messages` | Create a new message |
-| `GET` | `/api/info` | Application info and statistics |
-| `GET` | `/actuator/health` | Health check endpoint |
-| `GET` | `/actuator/info` | Application information |
-| `GET` | `/actuator/metrics` | Application metrics |
+| Method | Endpoint | Description | Response Type |
+| ------ | -------- | ----------- | ------------- |
+| `GET` | `/api/hello` | Hello world message with timestamp | `HelloResponse` |
+| `GET` | `/api/counter` | Thread-safe atomic counter | `CounterResponse` |
+| `GET` | `/api/messages` | Retrieve all messages (newest first) | `List<MessageResponse>` |
+| `POST` | `/api/messages` | Create a new message | `MessageResponse` |
+| `GET` | `/api/info` | Application info and statistics | `InfoResponse` |
+| `GET` | `/actuator/health` | Health check endpoint | JSON |
+| `GET` | `/actuator/info` | Application information | JSON |
+| `GET` | `/actuator/metrics` | Application metrics | JSON |
 
 ### Example Requests
 
@@ -180,12 +182,15 @@ docker exec -it messages-mysql mysql -u root -p
 ## 🔐 Security Features
 
 ### Environment Variables
+
 All sensitive configuration is managed through environment variables loaded from `.env`:
+
 - MySQL root password
 - Application database credentials
 - JPA configuration
 
 ### Security Scanning
+
 - **OWASP Dependency Check**: Scans for known vulnerabilities (fails on CVSS 7+)
 - **Docker Scout/Trivy**: Container image vulnerability scanning
 - **GitHub Actions**: Automated security checks on every push/PR
@@ -203,6 +208,7 @@ chmod +x security-scan.sh
 ```
 
 ### Security Best Practices Implemented
+
 ✅ Non-root container user (`appuser`)  
 ✅ Multi-stage Docker builds (smaller attack surface)  
 ✅ Pinned image versions (reproducible builds)  
@@ -214,6 +220,7 @@ chmod +x security-scan.sh
 ## 📦 Docker Configuration
 
 ### Multi-Stage Build
+
 The Dockerfile uses a two-stage build process:
 
 1. **Build Stage**: Maven 3.9.9 + JDK 21
@@ -242,6 +249,7 @@ The Dockerfile uses a two-stage build process:
 ### GitHub Actions Workflows
 
 **Security Scan** (`.github/workflows/security-scan.yml`)
+
 - Triggers: Push, PR, weekly schedule
 - Docker image scanning (Trivy)
 - OWASP dependency check
@@ -299,7 +307,7 @@ docker-compose up -d
 
 ## 📊 Project Structure
 
-```
+```text
 .
 ├── .github/
 │   ├── copilot-instructions.md    # AI coding guidelines
@@ -309,6 +317,7 @@ docker-compose up -d
 │   ├── main/
 │   │   ├── java/org/roland/
 │   │   │   ├── controller/        # REST controllers
+│   │   │   ├── dto/               # Record-based DTOs with validation
 │   │   │   ├── model/             # JPA entities & repositories
 │   │   │   └── DemoApplication.java
 │   │   └── resources/
@@ -327,20 +336,24 @@ docker-compose up -d
 
 ## 🧪 Testing Strategy
 
-- **Unit Tests**: MockMVC with `@ExtendWith(MockitoExtension.class)`
-- **Integration Tests**: `@WebMvcTest` with `@TestConfiguration`
+- **Unit Tests**: Mockito with `@ExtendWith(MockitoExtension.class)` using DTO-based assertions
+- **Integration Tests**: `@WebMvcTest` with `@TestConfiguration` and mocked repositories
 - **Coverage**: JaCoCo enforces 80% minimum line coverage
-- **Date Handling**: `JavaTimeModule` for `LocalDateTime` serialization
+- **Date Handling**: `JavaTimeModule` for `LocalDateTime` serialization in DTOs
+- **Validation Testing**: Bean Validation constraints tested with `@Valid` on DTOs
 
 ## 📈 Performance & Monitoring
 
 ### Actuator Endpoints
+
 Access monitoring endpoints at `/actuator/*`:
+
 - `/health` - Application health status
 - `/info` - Build and version information  
 - `/metrics` - Runtime metrics
 
 ### Database Performance
+
 - Connection pooling via HikariCP
 - JPA query optimization with custom repository methods
 - Index on timestamp column (auto-created by Hibernate)
@@ -354,6 +367,7 @@ Access monitoring endpoints at `/actuator/*`:
 5. Open a Pull Request
 
 ### Code Style
+
 - Follow Spring Boot conventions
 - Maintain 80%+ test coverage
 - Run security scans before PR
@@ -378,4 +392,4 @@ This project is open source and available under the [MIT License](LICENSE).
 
 ---
 
-**Built with ❤️ using Spring Boot, Docker, and security best practices**
+## Built with ❤️ using Spring Boot, Docker, and security best practices
