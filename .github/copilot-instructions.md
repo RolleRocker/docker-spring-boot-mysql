@@ -74,8 +74,8 @@ mvn jacoco:report          # Generate coverage report
 5. **Config file locations**: Multiple config files exist (root `database_configuration.env`, `application_properties.yml` is unused, controller has orphaned `database_configuration.yml`).
 
 ## Key Files
-- [dockerfile](dockerfile): Multi-stage build with health checks
-- [ docker-compose.yml](%20docker-compose.yml): Service orchestration (note leading space in filename)
-- [pom.xml](pom.xml): Java 21, Spring Boot 3.4.5, JaCoCo coverage enforcement
-- [SimpleController.java](src/main/java/org/roland/controller/SimpleController.java): Main REST API endpoints
-- [start_docker_services.sh](start_docker_services.sh): One-command startup script
+- [dockerfile](../dockerfile): Multi-stage build with health checks
+- [docker-compose.yml](../docker-compose.yml): Service orchestration
+- [pom.xml](../pom.xml): Java 21, Spring Boot 3.4.5, JaCoCo coverage enforcement
+- [SimpleController.java](../src/main/java/org/roland/controller/SimpleController.java): Main REST API endpoints
+- [start_docker_services.sh](../start_docker_services.sh): One-command startup script

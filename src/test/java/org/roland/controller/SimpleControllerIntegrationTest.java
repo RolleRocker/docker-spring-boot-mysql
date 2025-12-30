@@ -26,7 +26,6 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.MvcResult;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -41,7 +40,8 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
 @WebMvcTest(SimpleController.class)
 @ContextConfiguration(classes = {SimpleController.class, SimpleControllerIntegrationTest.TestConfig.class})
-public class SimpleControllerIntegrationTest {
+@SuppressWarnings("null")
+class SimpleControllerIntegrationTest {
 
     @TestConfiguration
     static class TestConfig {
@@ -354,12 +354,8 @@ public class SimpleControllerIntegrationTest {
 
     @Test
     void testTimestampConsistency() throws Exception {
-        MvcResult result = mockMvc.perform(get("/api/hello"))
-                .andExpect(status().isOk())
-                .andReturn();
-
-        // Parse response och kontrollera timestamp
         mockMvc.perform(get("/api/hello"))
+                .andExpect(status().isOk())
                 .andExpect(jsonPath("$.timestamp", notNullValue()));
     }
 
@@ -410,17 +406,14 @@ public class SimpleControllerIntegrationTest {
     @Test
     void testCounterIncrementsCorrectly() throws Exception {
         // Get current counter value
-        MvcResult result1 = mockMvc.perform(get("/api/counter"))
-                .andExpect(status().isOk())
-                .andReturn();
+        mockMvc.perform(get("/api/counter"))
+                .andExpect(status().isOk());
 
         // Get counter value again and verify it incremented
-        MvcResult result2 = mockMvc.perform(get("/api/counter"))
-                .andExpect(status().isOk())
-                .andReturn();
+        mockMvc.perform(get("/api/counter"))
+                .andExpect(status().isOk());
 
-        // Parse and compare (second call should be first call + 1)
-        // Or simply verify the counter is positive and functional
+        // Verify the counter is positive and functional
         mockMvc.perform(get("/api/counter"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.count", greaterThan(0)));

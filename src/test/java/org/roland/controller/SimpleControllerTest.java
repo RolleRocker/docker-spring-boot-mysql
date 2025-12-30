@@ -27,7 +27,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
 @ExtendWith(MockitoExtension.class)
-public class SimpleControllerTest {
+@SuppressWarnings("null")
+class SimpleControllerTest {
 
     @Mock
     private MessageRepository messageRepository;
@@ -42,9 +43,10 @@ public class SimpleControllerTest {
 
         // Då
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertNotNull(response.getBody());
-        assertEquals("Hello from Java Docker app!", response.getBody().get("message"));
-        assertNotNull(response.getBody().get("timestamp"));
+        Map<String, String> body = response.getBody();
+        assertNotNull(body);
+        assertEquals("Hello from Java Docker app!", body.get("message"));
+        assertNotNull(body.get("timestamp"));
     }
 
     @Test
@@ -53,8 +55,9 @@ public class SimpleControllerTest {
         ResponseEntity<Map<String, String>> response = simpleController.hello();
 
         // Då
-        assertNotNull(response.getBody());
-        String timestamp = response.getBody().get("timestamp");
+        Map<String, String> body = response.getBody();
+        assertNotNull(body);
+        String timestamp = body.get("timestamp");
         assertNotNull(timestamp);
         // Verifiera att timestamp är i rätt format (ISO LocalDateTime)
         assertDoesNotThrow(() -> LocalDateTime.parse(timestamp));
@@ -68,12 +71,14 @@ public class SimpleControllerTest {
 
         // Då
         assertEquals(HttpStatus.OK, response1.getStatusCode());
-        assertNotNull(response1.getBody());
-        assertEquals(1L, response1.getBody().get("count"));
+        Map<String, Long> body1 = response1.getBody();
+        assertNotNull(body1);
+        assertEquals(1L, body1.get("count"));
 
         assertEquals(HttpStatus.OK, response2.getStatusCode());
-        assertNotNull(response2.getBody());
-        assertEquals(2L, response2.getBody().get("count"));
+        Map<String, Long> body2 = response2.getBody();
+        assertNotNull(body2);
+        assertEquals(2L, body2.get("count"));
     }
 
     @Test
@@ -82,8 +87,9 @@ public class SimpleControllerTest {
         for (int i = 1; i <= 5; i++) {
             ResponseEntity<Map<String, Long>> response = simpleController.getCounter();
             assertEquals(HttpStatus.OK, response.getStatusCode());
-            assertNotNull(response.getBody());
-            assertEquals(i, response.getBody().get("count"));
+            Map<String, Long> body = response.getBody();
+            assertNotNull(body);
+            assertEquals(i, body.get("count"));
         }
     }
 
@@ -101,9 +107,10 @@ public class SimpleControllerTest {
 
         // Då
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertNotNull(response.getBody());
-        assertEquals("Test meddelande", response.getBody().getContent());
-        assertNotNull(response.getBody().getTimestamp());
+        Message body = response.getBody();
+        assertNotNull(body);
+        assertEquals("Test meddelande", body.getContent());
+        assertNotNull(body.getTimestamp());
 
         verify(messageRepository).save(any(Message.class));
     }
@@ -124,9 +131,10 @@ public class SimpleControllerTest {
 
         // Då
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertNotNull(response.getBody());
-        assertNull(response.getBody().getContent());
-        assertNotNull(response.getBody().getTimestamp());
+        Message body = response.getBody();
+        assertNotNull(body);
+        assertNull(body.getContent());
+        assertNotNull(body.getTimestamp());
 
         verify(messageRepository).save(any(Message.class));
     }
@@ -145,9 +153,10 @@ public class SimpleControllerTest {
 
         // Då
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertNotNull(response.getBody());
-        assertEquals("", response.getBody().getContent());
-        assertNotNull(response.getBody().getTimestamp());
+        Message body = response.getBody();
+        assertNotNull(body);
+        assertEquals("", body.getContent());
+        assertNotNull(body.getTimestamp());
 
         verify(messageRepository).save(any(Message.class));
     }
@@ -167,8 +176,9 @@ public class SimpleControllerTest {
 
         // Då
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertNotNull(response.getBody());
-        assertEquals(longContent, response.getBody().getContent());
+        Message body = response.getBody();
+        assertNotNull(body);
+        assertEquals(longContent, body.getContent());
 
         verify(messageRepository).save(any(Message.class));
     }
@@ -186,8 +196,9 @@ public class SimpleControllerTest {
         LocalDateTime afterCall = LocalDateTime.now().plusSeconds(1);
 
         // Då
-        assertNotNull(response.getBody());
-        LocalDateTime timestamp = response.getBody().getTimestamp();
+        Message body = response.getBody();
+        assertNotNull(body);
+        LocalDateTime timestamp = body.getTimestamp();
         assertTrue(timestamp.isAfter(beforeCall) && timestamp.isBefore(afterCall));
     }
 
@@ -205,10 +216,11 @@ public class SimpleControllerTest {
 
         // Då
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertNotNull(response.getBody());
-        assertEquals(2, response.getBody().size());
-        assertEquals("Första meddelandet", response.getBody().get(0).getContent());
-        assertEquals("Andra meddelandet", response.getBody().get(1).getContent());
+        List<Message> body = response.getBody();
+        assertNotNull(body);
+        assertEquals(2, body.size());
+        assertEquals("Första meddelandet", body.get(0).getContent());
+        assertEquals("Andra meddelandet", body.get(1).getContent());
 
         verify(messageRepository).findAllByOrderByTimestampDesc();
     }
@@ -223,8 +235,9 @@ public class SimpleControllerTest {
 
         // Då
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertNotNull(response.getBody());
-        assertTrue(response.getBody().isEmpty());
+        List<Message> body = response.getBody();
+        assertNotNull(body);
+        assertTrue(body.isEmpty());
 
         verify(messageRepository).findAllByOrderByTimestampDesc();
     }
@@ -240,9 +253,10 @@ public class SimpleControllerTest {
 
         // Då
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertNotNull(response.getBody());
-        assertEquals(1, response.getBody().size());
-        assertEquals("Enda meddelandet", response.getBody().getFirst().getContent());
+        List<Message> body = response.getBody();
+        assertNotNull(body);
+        assertEquals(1, body.size());
+        assertEquals("Enda meddelandet", body.getFirst().getContent());
     }
 
     @Test
@@ -257,11 +271,12 @@ public class SimpleControllerTest {
 
         // Då
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertNotNull(response.getBody());
-        assertEquals("simple-java-docker", response.getBody().get("app"));
-        assertEquals("1.0.0", response.getBody().get("version"));
-        assertEquals(1L, response.getBody().get("totalMessages"));
-        assertNotNull(response.getBody().get("timestamp"));
+        Map<String, Object> body = response.getBody();
+        assertNotNull(body);
+        assertEquals("simple-java-docker", body.get("app"));
+        assertEquals("1.0.0", body.get("version"));
+        assertEquals(1L, body.get("totalMessages"));
+        assertNotNull(body.get("timestamp"));
 
         verify(messageRepository).count();
     }
@@ -276,10 +291,11 @@ public class SimpleControllerTest {
 
         // Då
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertNotNull(response.getBody());
-        assertEquals(0L, response.getBody().get("totalMessages"));
-        assertEquals("simple-java-docker", response.getBody().get("app"));
-        assertEquals("1.0.0", response.getBody().get("version"));
+        Map<String, Object> body = response.getBody();
+        assertNotNull(body);
+        assertEquals(0L, body.get("totalMessages"));
+        assertEquals("simple-java-docker", body.get("app"));
+        assertEquals("1.0.0", body.get("version"));
 
         verify(messageRepository).count();
     }
@@ -294,8 +310,9 @@ public class SimpleControllerTest {
 
         // Då
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertNotNull(response.getBody());
-        assertEquals(100L, response.getBody().get("totalMessages"));
+        Map<String, Object> body = response.getBody();
+        assertNotNull(body);
+        assertEquals(100L, body.get("totalMessages"));
 
         verify(messageRepository).count();
     }
@@ -309,8 +326,9 @@ public class SimpleControllerTest {
         ResponseEntity<Map<String, Object>> response = simpleController.getInfo();
 
         // Då
-        assertNotNull(response.getBody());
-        String timestamp = (String) response.getBody().get("timestamp");
+        Map<String, Object> body = response.getBody();
+        assertNotNull(body);
+        String timestamp = (String) body.get("timestamp");
         assertNotNull(timestamp);
         // Verifiera att timestamp är i rätt format
         assertDoesNotThrow(() -> LocalDateTime.parse(timestamp));
@@ -345,8 +363,9 @@ public class SimpleControllerTest {
 
         // Räknaren ska fortfarande vara 0
         ResponseEntity<Map<String, Long>> response = simpleController.getCounter();
-        assertNotNull(response.getBody());
-        assertEquals(1L, response.getBody().get("count"));
+        Map<String, Long> body = response.getBody();
+        assertNotNull(body);
+        assertEquals(1L, body.get("count"));
     }
 
     @Test
@@ -365,13 +384,15 @@ public class SimpleControllerTest {
 
         // Hämta meddelanden
         ResponseEntity<List<Message>> messagesResponse = simpleController.getMessages();
-        assertNotNull(messagesResponse.getBody());
-        assertEquals(2, messagesResponse.getBody().size());
+        List<Message> messagesBody = messagesResponse.getBody();
+        assertNotNull(messagesBody);
+        assertEquals(2, messagesBody.size());
 
         // Kontrollera info
         ResponseEntity<Map<String, Object>> infoResponse = simpleController.getInfo();
-        assertNotNull(infoResponse.getBody());
-        assertEquals(2L, infoResponse.getBody().get("totalMessages"));
+        Map<String, Object> infoBody = infoResponse.getBody();
+        assertNotNull(infoBody);
+        assertEquals(2L, infoBody.get("totalMessages"));
 
         verify(messageRepository, times(2)).save(any(Message.class));
         verify(messageRepository).findAllByOrderByTimestampDesc();

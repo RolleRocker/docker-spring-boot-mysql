@@ -6,7 +6,7 @@
 - **Created**: `.env` file with secure password templates
 - **Created**: `.env.example` as a template for team members
 - **Updated**: `.gitignore` to exclude `.env` files from Git
-- **Updated**: [docker-compose.yml](%20docker-compose.yml) to use environment variables
+- **Updated**: [docker-compose.yml](docker-compose.yml) to use environment variables
 
 ### ✅ 2. Security Scanning
 - **Created**: `security-scan.sh` (Bash) and `security-scan.ps1` (PowerShell)
