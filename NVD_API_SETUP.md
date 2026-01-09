@@ -28,12 +28,25 @@ With an API key, scans complete in **2-5 minutes**! 🚀
 
 ### Via GitHub CLI (alternative):
 
+**Windows (PowerShell):**
+```powershell
+# Install GitHub CLI if needed
+winget install GitHub.cli
+
+# Authenticate (opens browser for login)
+gh auth login
+
+# Add the secret
+gh secret set NVD_API_KEY -b "YOUR_API_KEY_HERE" -R RolleRocker/docker-spring-boot-mysql
+```
+
+**Linux/Mac (Bash):**
 ```bash
 # Install GitHub CLI if needed
-# Windows: winget install GitHub.cli
 # Mac: brew install gh
+# Linux: curl -fsSLo /usr/local/bin/gh.tgz https://github.com/cli/cli/releases/download/v2.0.0/gh_2.0.0_linux_amd64.tar.gz
 
-# Authenticate
+# Authenticate (opens browser for login)
 gh auth login
 
 # Add the secret

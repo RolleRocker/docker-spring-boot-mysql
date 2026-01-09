@@ -42,10 +42,16 @@ A production-ready Spring Boot REST API with MySQL persistence, designed as a co
 
 **4-Layer Architecture:**
 
-- **Controllers** (`org.roland.controller`): REST endpoints under `/api` prefix using constructor injection
-- **DTOs** (`org.roland.dto`): Immutable record-based request/response objects with Bean Validation
-- **Models** (`org.roland.model`): JPA entities with Jakarta Persistence
-- **Repository** (`org.roland.model`): Spring Data JPA with custom query methods (`findAllByOrderByTimestampDesc`)
+- **Controllers** (`org.roland.controller`): REST endpoints under `/api` prefix using constructor injection for dependency management
+- **DTOs** (`org.roland.dto`): Immutable record-based request/response objects with Bean Validation (`@Valid`)
+- **Models** (`org.roland.model`): JPA entities with Jakarta Persistence annotations and `@Entity` mappings
+- **Repository** (`org.roland.model`): Spring Data JPA interfaces extending `JpaRepository` with custom query methods like `findAllByOrderByTimestampDesc()`
+
+This 4-layer structure provides clear separation of concerns:
+- **HTTP Layer**: Controllers handle REST requests/responses
+- **Data Transfer Layer**: DTOs provide typed contracts for API communication
+- **Domain Layer**: Models represent database entities
+- **Data Access Layer**: Repository provides database operations
 
 ## 📋 Prerequisites
 
@@ -66,11 +72,19 @@ cd docker-spring-boot-mysql
 ### 2. Configure Environment Variables
 
 ```bash
-# Copy example environment file
+# Copy the example environment file
 cp .env.example .env
 
-# Edit .env and set secure passwords
-# IMPORTANT: Change the default passwords before production use!
+# Edit .env with secure passwords (IMPORTANT!)
+# On Windows: notepad .env
+# On Linux/Mac: nano .env
+
+# Change these placeholder values:
+# - MYSQL_ROOT_PASSWORD=your_secure_root_password_here
+# - MYSQL_PASSWORD=your_secure_app_password_here
+# - SPRING_DATASOURCE_PASSWORD=your_secure_app_password_here
+
+# Note: .env is in .gitignore and never committed to Git
 ```
 
 ### 3. Start with Docker Compose
@@ -79,7 +93,11 @@ cp .env.example .env
 # Build and start all services
 docker-compose up --build -d
 
-# Or use the convenience script (Linux/Mac)
+# Or use the convenience script:
+# Windows (PowerShell):
+.\start_docker_services.ps1
+
+# Linux/Mac (Bash):
 chmod +x start_docker_services.sh
 ./start_docker_services.sh
 ```

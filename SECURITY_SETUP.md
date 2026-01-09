@@ -1,35 +1,47 @@
-# Docker Security Setup - Complete! 🔒
+# Docker Security Setup - Recommended Configuration 🔒
 
-## What Was Implemented:
+## What Should Be Configured:
 
 ### ✅ 1. Environment Variables (.env)
-- **Created**: `.env` file with secure password templates
-- **Created**: `.env.example` as a template for team members
-- **Updated**: `.gitignore` to exclude `.env` files from Git
-- **Updated**: [docker-compose.yml](docker-compose.yml) to use environment variables
+- **Template Available**: `.env.example` is provided as a template
+- **Setup Required**: Copy `.env.example` to `.env` before first run
+- **Security**: `.gitignore` excludes `.env` files from Git (never commit secrets!)
+- **Configuration**: Update with your own secure passwords before deployment
 
-### ✅ 2. Security Scanning
-- **Created**: `security-scan.sh` (Bash) and `security-scan.ps1` (PowerShell)
-- **Created**: `.github/workflows/security-scan.yml` for automated CI/CD scanning
-- **Added**: OWASP Dependency Check Maven plugin to `pom.xml`
-- **Fixed**: Duplicate `spring-boot-maven-plugin` in pom.xml
+### ✅ 2. Security Scanning Tools
+- **Available**: `security-scan.sh` (Bash) and `security-scan.ps1` (PowerShell) for local scanning
+- **CI/CD Configured**: `.github/workflows/security-scan.yml` runs automated security checks on GitHub
+- **Maven Plugin**: OWASP Dependency Check included in `pom.xml` for vulnerability scanning
+- **Container Security**: Use Docker Scout or Trivy for image vulnerability scanning
 
-### ✅ 3. Image Updates
-- **MySQL**: 8.0 → 8.0.40 (security patches)
-- **Maven**: 3.9.6 → 3.9.9 (latest stable)
-- **Temurin JRE**: 21-jre-alpine → 21.0.5_11-jre-alpine (pinned version)
+### ✅ 3. Docker Image Versions
+- **MySQL**: 8.0.40 (latest secure version)
+- **Maven**: 3.9.9 (latest stable build tool)
+- **JRE**: 21.0.5_11-jre-alpine (pinned for reproducibility)
 
-## 🚀 Quick Start:
+## 🚀 Getting Started:
 
-### Step 1: Update Your Passwords
+### Step 1: Create Your Environment Configuration
 ```bash
-# Edit .env and replace placeholder passwords
-notepad .env
+# Copy the template
+cp .env.example .env
+
+# Edit with your secure passwords
+# Windows: notepad .env
+# Linux/Mac: nano .env
+
+# Required changes:
+# - MYSQL_ROOT_PASSWORD: Change from placeholder
+# - MYSQL_PASSWORD: Change from placeholder  
+# - SPRING_DATASOURCE_PASSWORD: Match MYSQL_PASSWORD
 ```
 
-### Step 2: Rebuild and Start
+### Step 2: Rebuild and Start Services
 ```bash
+# Stop any running services
 docker-compose down
+
+# Start with new configuration
 docker-compose up --build -d
 ```
 
@@ -49,57 +61,55 @@ mvn org.owasp:dependency-check-maven:check
 # View report: target/dependency-check-report.html
 ```
 
-## 📋 Security Features:
+## � Security Best Practices:
 
-### Local Scanning:
-- Docker image vulnerability scanning (Docker Scout/Trivy)
-- Maven dependency vulnerability checking (OWASP)
-- Secret detection in code
-- Exposed port analysis
-
-### CI/CD Scanning (GitHub Actions):
-- Automated weekly security scans
-- Pull request security checks
-- SARIF reports uploaded to GitHub Security tab
-- Dependency update notifications
-
-## 🔐 Best Practices Implemented:
-
-1. **No Hardcoded Secrets**: All passwords in `.env`
+1. **Environment Variables**: All secrets stored in `.env` (not committed to Git)
 2. **Version Pinning**: Specific image versions prevent unexpected updates
-3. **Git Protection**: `.env` excluded from version control
-4. **Automated Scanning**: GitHub Actions runs security checks
-5. **CVE Threshold**: Builds fail on CVSS 7+ vulnerabilities
+3. **Git Protection**: `.env` is in `.gitignore` - never commit passwords
+4. **Automated Scanning**: GitHub Actions security workflows run automatically
+5. **CVE Threshold**: Builds fail on CVSS 7+ vulnerabilities (prevents deployment of insecure code)
+6. **Non-Root Containers**: Application runs as unprivileged `appuser`
+7. **Multi-Stage Builds**: Only runtime dependencies in final image (smaller attack surface)
 
-## 📝 Next Steps:
+## 📝 Setup Checklist:
 
-1. **Update .env passwords** - Replace the template passwords
-2. **Verify .env is gitignored**:
-   ```bash
-   git status # .env should NOT appear
-   ```
+- [ ] Copy `.env.example` to `.env`
+- [ ] Update passwords in `.env` with secure values
+- [ ] Run `docker-compose down && docker-compose up --build -d`
+- [ ] Verify `.env` is NOT in `git status` output
+- [ ] Test security scan: `.\security-scan.ps1` (Windows) or `./security-scan.sh` (Linux/Mac)
+- [ ] Run dependency check: `mvn org.owasp:dependency-check-maven:check`
+- [ ] Push to GitHub to trigger CI/CD security workflows
 
-3. **Test the security scan**:
-   ```powershell
-   .\security-scan.ps1
-   ```
+## 🛠️ Optional Security Tools:
 
-4. **Enable GitHub Actions** - Push to GitHub to activate automated scanning
-
-5. **Review security reports** regularly in GitHub Security tab
-
-## 🛠️ Additional Tools to Install:
-
+### Docker Scout (Recommended)
 ```bash
-# Docker Scout (recommended)
+# View container image vulnerabilities
 docker scout quickview
 
-# Trivy (alternative)
-# Windows: choco install trivy
-# Linux: wget -qO - https://aquasecurity.github.io/trivy-repo/deb/public.key | sudo apt-key add -
+# Full CVE analysis
+docker scout cves
+```
 
-# Snyk (alternative)
-# npm install -g snyk
+### Trivy (Container Scanning)
+```powershell
+# Windows
+choco install trivy
+trivy image <image-name>
+```
+
+```bash
+# Linux
+curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin
+trivy image <image-name>
+```
+
+### Snyk (Dependency Management)
+```bash
+npm install -g snyk
+snyk test  # Test dependencies
+snyk monitor  # Continuous monitoring
 ```
 
 ## ⚠️ Important Warnings:

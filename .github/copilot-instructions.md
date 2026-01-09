@@ -21,19 +21,19 @@ Spring Boot 3.4.13 REST API with MySQL persistence, designed as a Docker learnin
 - Init SQL scripts in `init.sql/` directory, mounted to `/docker-entrypoint-initdb.d/`
 
 **Entry Points:**
-- `DemoApplication.java`: Main Spring Boot application
-- `Main.java`: Alternative entry point (legacy, prefer DemoApplication)
+- `DemoApplication.java`: **PRIMARY** - Main Spring Boot application with `@SpringBootApplication` annotation. Use this for all Docker and production deployments.
+- `Main.java`: Legacy placeholder class (IntelliJ template). DO NOT USE - this is a demo file only and does not start the Spring Boot app.
 
 ## Development Workflows
 
 **Build & Run:**
-```bash
+```powershell
 # Local Maven build (requires Java 21)
 mvn clean package
 
-# Docker-based build & run (recommended)
-./start_docker_services.sh  # Builds, starts compose, tails logs
-# Or: docker-compose up --build
+# Docker-based build & run (RECOMMENDED on Windows)
+.\start_docker_services.ps1  # Builds, starts compose, tails logs
+# Or manually: docker-compose up --build
 
 # Access:
 # - App: http://localhost:8080/api/hello
@@ -41,23 +41,46 @@ mvn clean package
 # - MySQL: localhost:3306
 ```
 
+**PowerShell Startup Script:**
+- Use `start_docker_services.ps1` on Windows (handles paths with spaces properly)
+- Script automatically builds, starts containers, and tails application logs
+- Press Ctrl+C to stop log tailing (containers remain running)
+
 **Testing:**
 ```bash
 mvn test                    # Run all tests with JaCoCo coverage (80% minimum)
 mvn jacoco:report          # Generate coverage report
 ```
 
+**Jackson LocalDateTime Serialization (Critical for Tests):**
+```java
+@TestConfiguration
+static class TestConfig {
+    @Bean
+    @Primary
+    public ObjectMapper objectMapper() {
+        return new ObjectMapper()
+                .registerModule(new JavaTimeModule())
+                .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+    }
+}
+```
+- **Must register `JavaTimeModule`** to handle `LocalDateTime` serialization in JSON responses
+- **Disable `WRITE_DATES_AS_TIMESTAMPS`** to serialize as ISO-8601 strings instead of milliseconds
+- Mock the `ObjectMapper` bean in `@TestConfiguration` to ensure test consistency
+- Without this config, LocalDateTime fields will fail to serialize in MockMvc tests
+
 **Test Strategy:**
 - Unit tests (`SimpleControllerTest`): Mock `MessageRepository` with `@ExtendWith(MockitoExtension.class)`
 - Integration tests (`SimpleControllerIntegrationTest`): Use `@WebMvcTest` + custom `@TestConfiguration` for mocked repos
-- ObjectMapper configured with `JavaTimeModule` for `LocalDateTime` serialization
 
 ## Project-Specific Conventions
 
 **Configuration Management:**
-- `application.properties`: Base config (server.port, actuator endpoints)
-- `database_configuration.env`: MySQL credentials (used by compose services)
-- Environment variables override properties at runtime (see compose file)
+- `application.properties`: Base Spring config (server.port=8080, actuator endpoints)
+- `database_configuration.env`: Single source of truth for all Docker environment variables (MySQL credentials, Spring datasource URLs)
+- Environment variables override properties at runtime (docker-compose.yml references .env)
+- **DEPRECATED**: `application_properties.yml` and `database_configuration.yml` have been removed from the project
 
 **Dockerfile Pattern:**
 - Multi-stage build: `maven:3.9.6-eclipse-temurin-21` (build) → `eclipse-temurin:21-jre-alpine` (runtime)
@@ -71,15 +94,34 @@ mvn jacoco:report          # Generate coverage report
 
 ## Common Pitfalls
 
-1. **Space in workspace path**: Directory name is "Docker Prodject" (note spacing). Escape paths in scripts.
-2. **Duplicate plugins**: `pom.xml` has `spring-boot-maven-plugin` declared twice (lines 61-67) - keep only one.
-3. **Repository package mismatch**: `MessageRepository` is in `org.roland.model` but test imports `org.roland.repository` - use correct package.
-4. **Compose health dependency**: App waits for MySQL `service_healthy` before starting. If MySQL health check fails, app won't start.
-5. **Config file locations**: Multiple config files exist (root `database_configuration.env`, `application_properties.yml` is unused, controller has orphaned `database_configuration.yml`).
+1. **Space in workspace path**: Directory name is "Docker Prodject" (note spacing). All scripts handle this - use PowerShell scripts, not bash.
+
+2. **Repository package names**: `MessageRepository` is in `org.roland.model` - always import from here, NOT `org.roland.repository`.
+
+3. **Entry point confusion**: Only `DemoApplication.java` starts the Spring Boot app. `Main.java` is a legacy placeholder and does nothing.
+
+4. **LocalDateTime serialization fails in tests**: Must configure Jackson with `JavaTimeModule` and `disable(WRITE_DATES_AS_TIMESTAMPS)` in `@TestConfiguration`. See Test Strategy section above.
+
+5. **MySQL health check failures**: If the app container doesn't start, check these diagnostics:
+   ```powershell
+   docker-compose ps                    # Check service status
+   docker-compose logs mysql           # MySQL init errors
+   docker-compose logs app             # App startup errors
+   docker ps -a                        # View all containers
+   ```
+   Common causes:
+   - MySQL init script failure (check `initial_setup.sql`)
+   - Port 3306 already in use
+   - Insufficient disk space for MySQL volume
+   - Health check timeout (default 10s, may need increase for slow systems)
+
+6. **Config file consolidation**: All environment variables go in `database_configuration.env`. Don't create `application_properties.yml` or `database_configuration.yml` - they create confusion and override issues.
 
 ## Key Files
 - [dockerfile](../dockerfile): Multi-stage build with health checks
 - [docker-compose.yml](../docker-compose.yml): Service orchestration
-- [pom.xml](../pom.xml): Java 21, Spring Boot 3.4.5, JaCoCo coverage enforcement
+- [pom.xml](../pom.xml): Java 21, Spring Boot 3.4.13, JaCoCo coverage enforcement (80% minimum)
+- [DemoApplication.java](../src/main/java/org/roland/DemoApplication.java): **PRIMARY** Spring Boot entry point
 - [SimpleController.java](../src/main/java/org/roland/controller/SimpleController.java): Main REST API endpoints
-- [start_docker_services.sh](../start_docker_services.sh): One-command startup script
+- [start_docker_services.ps1](../start_docker_services.ps1): Windows PowerShell startup script (recommended)
+- [start_docker_services.sh](../start_docker_services.sh): Bash startup script (legacy)
