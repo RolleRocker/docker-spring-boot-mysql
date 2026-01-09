@@ -5,7 +5,11 @@
 - Use single-line git commit messages to avoid parsing issues
 
 ## Project Overview
-Spring Boot 3.4.13 REST API with MySQL persistence, designed as a Docker learning project. Uses multi-stage Dockerfile builds and Docker Compose orchestration.
+Spring Boot 3.5.0 REST API with MySQL persistence, designed as a Docker learning project. Uses multi-stage Dockerfile builds and Docker Compose orchestration.
+
+**Support Timeline:**
+- OSS Support: Until 2026-08-31
+- Commercial Support (Tanzu Spring Runtime): Until 2027-08-31
 
 ## Architecture & Components
 
@@ -120,7 +124,7 @@ static class TestConfig {
 ## Key Files
 - [dockerfile](../dockerfile): Multi-stage build with health checks
 - [docker-compose.yml](../docker-compose.yml): Service orchestration
-- [pom.xml](../pom.xml): Java 21, Spring Boot 3.4.13, JaCoCo coverage enforcement (80% minimum)
+- [pom.xml](../pom.xml): Java 21, Spring Boot 3.5.0, JaCoCo coverage enforcement (80% minimum)
 - [DemoApplication.java](../src/main/java/org/roland/DemoApplication.java): **PRIMARY** Spring Boot entry point
 - [SimpleController.java](../src/main/java/org/roland/controller/SimpleController.java): Main REST API endpoints
 - [start_docker_services.ps1](../start_docker_services.ps1): Windows PowerShell startup script (recommended)

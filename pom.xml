@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- 
-    Spring Boot 3.4.13 - OSS Support Timeline:
-    - OSS Support: Until 2025-12-31
-    - Commercial Support: Available via Tanzu Spring Runtime until 2026-12-31
-    - Migration Plan: Consider upgrading to Spring Boot 3.5.x or newer before EOL
+    Spring Boot 3.5.0 - OSS Support Timeline:
+    - OSS Support: Until 2026-08-31
+    - Commercial Support: Available via Tanzu Spring Runtime until 2027-08-31
+    - Upgraded from 3.4.13 (OSS EOL: 2025-12-31, Commercial EOL: 2026-12-31)
     For details: https://spring.io/support
 -->
 <project xmlns="http://maven.apache.org/POM/4.0.0"
@@ -15,7 +15,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.4.13</version>
+        <version>3.5.0</version>
         <relativePath/>
     </parent>
 
