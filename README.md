@@ -48,6 +48,7 @@ A production-ready Spring Boot REST API with MySQL persistence, designed as a co
 - **Repository** (`org.roland.model`): Spring Data JPA interfaces extending `JpaRepository` with custom query methods like `findAllByOrderByTimestampDesc()`
 
 This 4-layer structure provides clear separation of concerns:
+
 - **HTTP Layer**: Controllers handle REST requests/responses
 - **Data Transfer Layer**: DTOs provide typed contracts for API communication
 - **Domain Layer**: Models represent database entities
