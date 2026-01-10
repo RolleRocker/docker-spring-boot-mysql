@@ -122,10 +122,10 @@ static class TestConfig {
 6. **Config file consolidation**: All environment variables go in `database_configuration.env`. Don't create `application_properties.yml` or `database_configuration.yml` - they create confusion and override issues.
 
 ## Key Files
-- [dockerfile](../dockerfile): Multi-stage build with health checks
-- [docker-compose.yml](../docker-compose.yml): Service orchestration
-- [pom.xml](../pom.xml): Java 21, Spring Boot 3.5.9, JaCoCo coverage enforcement (80% minimum)
-- [DemoApplication.java](../src/main/java/org/roland/DemoApplication.java): **PRIMARY** Spring Boot entry point
-- [SimpleController.java](../src/main/java/org/roland/controller/SimpleController.java): Main REST API endpoints
-- [start_docker_services.ps1](../start_docker_services.ps1): Windows PowerShell startup script (recommended)
-- [start_docker_services.sh](../start_docker_services.sh): Bash startup script (legacy)
+- **dockerfile**: Multi-stage build with health checks
+- **docker-compose.yml**: Service orchestration
+- **pom.xml**: Java 21, Spring Boot 3.5.9, JaCoCo coverage enforcement (80% minimum)
+- **DemoApplication.java**: **PRIMARY** Spring Boot entry point (src/main/java/org/roland/DemoApplication.java)
+- **SimpleController.java**: Main REST API endpoints (src/main/java/org/roland/controller/SimpleController.java)
+- **start_docker_services.ps1**: Windows PowerShell startup script (recommended)
+- **start_docker_services.sh**: Bash startup script (legacy)
